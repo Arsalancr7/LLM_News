@@ -1,5 +1,6 @@
 streamlit
 langchain==0.1.14
+langchain-community
 transformers
 sentence-transformers
 faiss-cpu
