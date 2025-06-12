@@ -1,18 +1,22 @@
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.llms import HuggingFacePipeline
+from langchain_community.document_loaders import BSHTMLLoader
 
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chains import RetrievalQAWithSourcesChain
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-from langchain.llms import HuggingFacePipeline
-import langchain
 import os
-import streamlit as st
 import pickle
 import time
-from langchain.document_loaders import BSHTMLLoader
 import requests
+import streamlit as st
+
+from langchain_community.document_loaders import BSHTMLLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.llms import HuggingFacePipeline
+from langchain.chains import RetrievalQAWithSourcesChain
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 # ✅ Function to fetch and load HTML using BeautifulSoup
 def load_url_content(url):
