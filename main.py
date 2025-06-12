@@ -5,11 +5,11 @@ import requests
 import streamlit as st
 
 from langchain_community.document_loaders import BSHTMLLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.llms import HuggingFacePipeline
-from langchain.chains import RetrievalQAWithSourcesChain
+from langchain_community.chains import RetrievalQAWithSourcesChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 model_id = "sshleifer/tiny-gpt2"
