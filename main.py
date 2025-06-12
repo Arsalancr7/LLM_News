@@ -37,7 +37,8 @@ file_path = "faiss_store_openai.pkl"
 
 main_placeholder = st.empty()
 
-model_id = "EleutherAI/gpt-neo-1.3B"
+model_id = "sshleifer/tiny-gpt2"
+
 
 # Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(model_id)
