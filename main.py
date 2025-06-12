@@ -12,19 +12,13 @@ from langchain_community.llms import HuggingFacePipeline
 from langchain_community.chains import RetrievalQAWithSourcesChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-model_id = "sshleifer/tiny-gpt2"
 
+
+model_id = "sshleifer/tiny-gpt2"
 
 try:
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(model_id)
-except Exception as e:
-    st.error(f"❌ Model failed to load: {e}")
-    st.stop()
-
-
-
-
 
     pipe = pipeline(
         "text-generation",
@@ -36,9 +30,11 @@ except Exception as e:
     )
 
     llm = HuggingFacePipeline(pipeline=pipe)
+
 except Exception as e:
     st.error(f"❌ Failed to load the model: {e}")
     st.stop()
+
 
 def load_url_content(url):
     response = requests.get(url)
