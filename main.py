@@ -1,4 +1,3 @@
-
 import os
 import pickle
 import time
@@ -13,7 +12,27 @@ from langchain_community.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQAWithSourcesChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# ✅ Function to fetch and load HTML using BeautifulSoup
+# ✅ Use a lightweight model
+model_id = "sshleifer/tiny-gpt2"  # much faster and deployable
+
+try:
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(model_id)
+
+    pipe = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        max_new_tokens=256,
+        do_sample=True,
+        temperature=0.7
+    )
+
+    llm = HuggingFacePipeline(pipeline=pipe)
+except Exception as e:
+    st.error(f"❌ Failed to load the model: {e}")
+    st.stop()
+
 def load_url_content(url):
     response = requests.get(url)
     if response.status_code == 200:
@@ -24,8 +43,8 @@ def load_url_content(url):
     else:
         raise ValueError(f"Failed to load {url}, status code: {response.status_code}")
 
-st.title("RockyBot: News Research Tool 📈")
-st.sidebar.title("News Article URLs")
+st.title("📰 RockyBot: News Research Tool 📈")
+st.sidebar.title("Enter News URLs")
 
 urls = []
 for i in range(3):
@@ -37,73 +56,44 @@ file_path = "faiss_store_openai.pkl"
 
 main_placeholder = st.empty()
 
-model_id = "sshleifer/tiny-gpt2"
-
-
-# Load tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(model_id)
-
-# Create HF pipeline
-pipe = pipeline(
-    "text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    max_new_tokens=256,
-    do_sample=True,
-    temperature=0.7
-)
-
-# Wrap into LangChain LLM interface
-llm = HuggingFacePipeline(pipeline=pipe)
-
-
-
 if process_url_clicked:
-    # load data
     data2 = []
     for url in urls:
         if url.strip():
             try:
                 data2.extend(load_url_content(url))
             except Exception as e:
-                st.warning(f"Error loading {url}: {e}")
+                st.warning(f"⚠️ Could not load {url}: {e}")
 
-    # split data
-    text_splitter = RecursiveCharacterTextSplitter(
-        separators=['\n\n', '\n', '.', ','],
-        chunk_size=1000
-    )
-    main_placeholder.text("Text Splitter...Started...✅✅✅")
-    docs = text_splitter.split_documents(data2)
-    # create embeddings and save it to FAISS index
+    if data2:
+        main_placeholder.text("📚 Splitting text...")
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        docs = text_splitter.split_documents(data2)
 
+        main_placeholder.text("🔍 Creating embeddings and vector DB...")
+        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        vectorstore = FAISS.from_documents(docs, embeddings)
 
+        with open(file_path, "wb") as f:
+            pickle.dump(vectorstore, f)
 
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vectorstore_openai = FAISS.from_documents(docs, embeddings)
-    main_placeholder.text("Embedding Vector Started Building...✅✅✅")
-    time.sleep(2)
+        main_placeholder.success("✅ Done! Ask your question below.")
 
-    # Save the FAISS index to a pickle file
-    with open(file_path, "wb") as f:
-        pickle.dump(vectorstore_openai, f)
-
-query = main_placeholder.text_input("Question: ")
+query = main_placeholder.text_input("💬 Ask a question based on the articles:")
 if query:
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
             vectorstore = pickle.load(f)
-            chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=vectorstore.as_retriever())
-            result = chain({"question": query}, return_only_outputs=True)
-            # result will be a dictionary of this format --> {"answer": "", "sources": [] }
-            st.header("Answer")
-            st.write(result["answer"])
 
-            # Display sources, if available
-            sources = result.get("sources", "")
-            if sources:
-                st.subheader("Sources:")
-                sources_list = sources.split("\n")  # Split the sources by newline
-                for source in sources_list:
-                    st.write(source)
+        chain = RetrievalQAWithSourcesChain.from_llm(llm=llm, retriever=vectorstore.as_retriever())
+        result = chain({"question": query}, return_only_outputs=True)
+
+        st.header("🧠 Answer")
+        st.write(result.get("answer", "No answer returned."))
+
+        sources = result.get("sources", "")
+        if sources:
+            st.subheader("🔗 Sources")
+            for source in sources.split("\n"):
+                if source.strip():
+                    st.write(f"- {source.strip()}")
