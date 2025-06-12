@@ -12,8 +12,8 @@ from langchain_community.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQAWithSourcesChain
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# ✅ Use a lightweight model
-model_id = "sshleifer/tiny-gpt2"  # much faster and deployable
+model_id = "sshleifer/tiny-gpt2"
+
 
 try:
     tokenizer = AutoTokenizer.from_pretrained(model_id)
