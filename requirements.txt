@@ -1,0 +1,10 @@
+streamlit
+langchain
+transformers
+sentence-transformers
+faiss-cpu
+torch
+beautifulsoup4
+html5lib
+requests
+tqdm
