@@ -18,6 +18,13 @@ model_id = "sshleifer/tiny-gpt2"
 try:
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(model_id)
+except Exception as e:
+    st.error(f"❌ Model failed to load: {e}")
+    st.stop()
+
+
+
+
 
     pipe = pipeline(
         "text-generation",
